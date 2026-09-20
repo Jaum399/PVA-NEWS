@@ -12,15 +12,15 @@ if (dateEl) {
 }
 
 const stories = [
-  { category: 'politica', label: 'Política', title: 'Congresso debate novas prioridades para infraestrutura e serviços públicos', text: 'Lideranças discutem medidas para acelerar projetos e melhorar a execução nos estados.', image: 'image-one' },
-  { category: 'politica', label: 'Política', title: 'Municípios defendem mais previsibilidade para investimentos regionais', text: 'Gestores apresentam propostas para aproximar planejamento e necessidades locais.', image: 'thumb-one' },
-  { category: 'politica', label: 'Política', title: 'Comissão avança em agenda de transparência e eficiência pública', text: 'Relatório reúne sugestões para simplificar processos e ampliar o acesso a dados.', image: 'image-four' },
-  { category: 'saude', label: 'Saúde', title: 'Atenção primária amplia programas de prevenção em todo o país', text: 'Novas equipes fortalecem o acompanhamento contínuo e o cuidado perto de casa.', image: 'image-two' },
-  { category: 'saude', label: 'Saúde', title: 'Hospitais testam soluções digitais para agilizar triagem', text: 'Tecnologia ajuda profissionais a organizar fluxos e priorizar atendimentos.', image: 'thumb-two' },
-  { category: 'saude', label: 'Saúde', title: 'Campanhas locais reforçam vacinação e cuidados preventivos', text: 'Ações integradas levam informação e atendimento a diferentes comunidades.', image: 'local-two' },
+  { category: 'politica', label: 'Política', title: 'Debates na Câmara Municipal concentram atenção dos moradores', text: 'Projetos para mobilidade, serviços e planejamento urbano entram na pauta local.', image: 'image-one' },
+  { category: 'politica', label: 'Política', title: 'Primavera do Leste acompanha decisões sobre infraestrutura urbana', text: 'Gestores e comunidade discutem prioridades para os bairros e áreas de expansão.', image: 'thumb-one' },
+  { category: 'politica', label: 'Política', title: 'Transparência e participação ganham espaço na agenda municipal', text: 'Informação pública ajuda moradores a acompanhar as decisões da cidade.', image: 'image-four' },
+  { category: 'saude', label: 'Saúde', title: 'Atenção básica amplia ações de prevenção em Primavera do Leste', text: 'Serviços mais próximos fortalecem o cuidado contínuo das famílias.', image: 'image-two' },
+  { category: 'saude', label: 'Saúde', title: 'Rede municipal reforça atendimento e orientação aos moradores', text: 'Equipes trabalham para facilitar o acesso e organizar os fluxos de atendimento.', image: 'thumb-two' },
+  { category: 'saude', label: 'Saúde', title: 'Campanhas locais levam informação e cuidado aos bairros', text: 'Ações de prevenção aproximam serviços de saúde das comunidades.', image: 'local-two' },
   { category: 'locais', label: 'Política local', title: 'Prefeitura anuncia plano de mobilidade para bairros em expansão', text: 'Projeto prevê novas conexões, áreas de convivência e melhorias no transporte.', image: 'local-one' },
-  { category: 'locais', label: 'Saúde local', title: 'Unidades básicas ampliam horários e serviços para moradores', text: 'A mudança busca reduzir deslocamentos e facilitar o acesso ao atendimento.', image: 'local-two' },
-  { category: 'locais', label: 'Economia local', title: 'Comércio regional cria novas oportunidades para pequenos negócios', text: 'Empreendedores apostam em inovação e parcerias para movimentar a economia.', image: 'local-three' }
+  { category: 'locais', label: 'Saúde local', title: 'Unidades de saúde ampliam horários e serviços para moradores', text: 'A mudança busca facilitar o acesso ao atendimento em Primavera do Leste.', image: 'local-two' },
+  { category: 'locais', label: 'Economia local', title: 'Comércio e agronegócio movimentam a economia da região', text: 'Empreendedores apostam em inovação e parcerias para gerar novas oportunidades.', image: 'local-three' }
 ];
 
 function tagClass(category) {
@@ -53,7 +53,7 @@ function setupSearch() {
 
   const search = document.createElement('div');
   search.className = 'search-panel';
-  search.innerHTML = '<div class="search-inner"><button class="search-close" aria-label="Fechar busca">×</button><span class="tag tag-primary">Busca PVA NEWS</span><h2>Encontre uma notícia</h2><input type="search" placeholder="Digite política, saúde, região..." aria-label="Buscar notícias" /><div class="search-results"></div></div>';
+  search.innerHTML = '<div class="search-inner"><button class="search-close" aria-label="Fechar busca">×</button><span class="tag tag-primary">Busca PVA NEWS</span><h2>Encontre uma notícia</h2><input type="search" placeholder="Digite bairro, saúde, política..." aria-label="Buscar notícias" /><div class="search-results"></div></div>';
   document.body.appendChild(search);
 
   const input = search.querySelector('input');
@@ -69,6 +69,16 @@ function setupSearch() {
   search.querySelector('.search-close').addEventListener('click', close);
   search.addEventListener('click', (event) => { if (event.target === search) close(); });
   input.addEventListener('input', updateResults);
+}
+
+if (document.body.dataset.category) {
+  document.querySelectorAll('.main-nav a[href="locais.html"]').forEach((link) => {
+    link.textContent = 'Primavera do Leste';
+  });
+  const footerDescription = document.querySelector('.site-footer p');
+  if (footerDescription) {
+    footerDescription.textContent = 'Informação clara, presença forte e cobertura que conecta Primavera do Leste.';
+  }
 }
 
 renderCategoryNews();
