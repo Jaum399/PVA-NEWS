@@ -14,6 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -259,6 +260,40 @@
         </div>
       </section>
 
+      <section class="container live-data-block" id="dados-em-tempo-real">
+        <div class="section-heading">
+          <div>
+            <span class="tag tag-primary">Dados ao vivo</span>
+            <h2>O pulso de Primavera do Leste</h2>
+          </div>
+          <span class="live-label"><span class="status-dot"></span> Atualização automática</span>
+        </div>
+
+        <div class="live-data-grid">
+          <article class="live-data-card market-card">
+            <div class="live-card-heading"><div><span class="data-eyebrow">Mercado financeiro</span><h3>Ibovespa</h3></div><span class="data-status" id="market-status">Carregando</span></div>
+            <div class="data-value" id="ibov-value">--</div>
+            <div class="data-change" id="ibov-change">Consultando cotação...</div>
+            <div class="chart-wrap"><canvas id="ibov-chart" aria-label="Gráfico do Ibovespa"></canvas></div>
+            <small class="data-source">Fonte: Stooq • série diária, com possível atraso de mercado</small>
+          </article>
+
+          <article class="live-data-card weather-card">
+            <div class="live-card-heading"><div><span class="data-eyebrow">Agora em</span><h3>Primavera do Leste</h3></div><span class="data-status" id="weather-status">Carregando</span></div>
+            <div class="weather-main"><span class="weather-icon" id="weather-icon">☀</span><div><div class="data-value" id="weather-value">--°</div><div class="data-change" id="weather-description">Consultando clima...</div></div></div>
+            <div class="weather-details"><span id="weather-wind">Vento -- km/h</span><span id="weather-humidity">Umidade --%</span></div>
+            <small class="data-source">Fonte: Open-Meteo • coordenadas da cidade</small>
+          </article>
+
+          <article class="live-data-card poll-card">
+            <div class="live-card-heading"><div><span class="data-eyebrow">Painel eleitoral</span><h3>Pesquisa presidencial</h3></div><span class="data-status neutral">Fonte necessária</span></div>
+            <div class="poll-empty"><span class="poll-icon">◌</span><strong>Dados eleitorais verificados</strong><p>O gráfico será atualizado quando uma pesquisa pública, com instituto e data identificados, for conectada ao portal.</p></div>
+            <div class="chart-wrap poll-chart-wrap"><canvas id="poll-chart" aria-label="Gráfico de pesquisa presidencial"></canvas></div>
+            <small class="data-source">Transparência editorial: sem percentuais não verificados.</small>
+          </article>
+        </div>
+      </section>
+
       <section class="container categories-block">
         <div class="section-heading">
           <h2>Por categoria</h2>
@@ -358,6 +393,7 @@
         <div>
           <a href="#" class="brand footer-brand">PVA <span>NEWS</span></a>
           <p>Informação clara, presença forte e cobertura que conecta Primavera do Leste.</p>
+            <small class="copyright">© 2026 PVA NEWS. Todos os direitos reservados. Conteúdo protegido por direitos autorais.</small>
         </div>
         <div class="footer-links">
           <a href="#">Sobre</a>

@@ -71,6 +71,102 @@ function setupSearch() {
   input.addEventListener('input', updateResults);
 }
 
+let ibovChart;
+
+function formatNumber(value, digits = 2) {
+  return new Intl.NumberFormat('pt-BR', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
+}
+
+function showDataError(statusId, message) {
+  const status = document.getElementById(statusId);
+  if (status) {
+    status.textContent = message;
+    status.classList.add('neutral');
+  }
+}
+
+async function loadIbovespa() {
+  const valueEl = document.getElementById('ibov-value');
+  if (!valueEl || typeof Chart === 'undefined') return;
+
+  try {
+    const response = await fetch('https://stooq.com/q/d/l/?s=%5Ebvsp&i=d');
+    if (!response.ok) throw new Error('Cotação indisponível');
+    const csv = await response.text();
+    const history = csv.trim().split('\n').slice(1).map((line) => {
+      const [date, , , , close] = line.split(',');
+      return { date, close: Number(close) };
+    }).filter((item) => Number.isFinite(item.close)).slice(-30);
+    if (!history.length) throw new Error('Sem dados');
+
+    const current = history.at(-1).close;
+    const previous = history.at(-2)?.close ?? current;
+    const change = previous ? ((current - previous) / previous) * 100 : 0;
+    valueEl.textContent = Number.isFinite(current) ? formatNumber(current, 0) : '--';
+    const changeEl = document.getElementById('ibov-change');
+    changeEl.textContent = `${change >= 0 ? '+' : ''}${formatNumber(change)}% no último fechamento`;
+    changeEl.classList.add(change >= 0 ? 'positive' : 'negative');
+    document.getElementById('market-status').textContent = 'Atualizado';
+
+    if (history.length) {
+      ibovChart?.destroy();
+      ibovChart = new Chart(document.getElementById('ibov-chart'), {
+        type: 'line',
+        data: {
+          labels: history.map((item) => new Date(item.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })),
+          datasets: [{ data: history.map((item) => Number(item.close)), borderColor: '#b71c1c', backgroundColor: 'rgba(183, 28, 28, 0.1)', fill: true, tension: 0.35, pointRadius: 0, borderWidth: 2 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+      });
+    }
+  } catch (error) {
+    valueEl.textContent = '--';
+    document.getElementById('ibov-change').textContent = 'Cotação indisponível no momento.';
+    showDataError('market-status', 'Indisponível');
+  }
+}
+
+function weatherDescription(code) {
+  if (code === 0) return 'Céu limpo';
+  if ([1, 2, 3].includes(code)) return 'Nublado';
+  if ([45, 48].includes(code)) return 'Névoa';
+  if ([51, 53, 55, 56, 57].includes(code)) return 'Garoa';
+  if ([61, 63, 65, 80, 81, 82].includes(code)) return 'Chuva';
+  if ([95, 96, 99].includes(code)) return 'Trovoada';
+  return 'Condição variável';
+}
+
+async function loadWeather() {
+  const valueEl = document.getElementById('weather-value');
+  if (!valueEl) return;
+
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=-15.5567&longitude=-54.2967&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=America%2FCuiaba';
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Clima indisponível');
+    const payload = await response.json();
+    const current = payload.current;
+    valueEl.textContent = `${formatNumber(current.temperature_2m, 0)}°C`;
+    document.getElementById('weather-description').textContent = weatherDescription(current.weather_code);
+    document.getElementById('weather-wind').textContent = `Vento ${formatNumber(current.wind_speed_10m, 0)} km/h`;
+    document.getElementById('weather-humidity').textContent = `Umidade ${formatNumber(current.relative_humidity_2m, 0)}%`;
+    document.getElementById('weather-icon').textContent = current.weather_code >= 51 ? '☁' : '☀';
+    document.getElementById('weather-status').textContent = 'Atualizado';
+  } catch (error) {
+    valueEl.textContent = '--°';
+    document.getElementById('weather-description').textContent = 'Clima indisponível no momento.';
+    showDataError('weather-status', 'Indisponível');
+  }
+}
+
+function setupLiveData() {
+  if (!document.getElementById('dados-em-tempo-real')) return;
+  loadIbovespa();
+  loadWeather();
+  window.setInterval(loadIbovespa, 5 * 60 * 1000);
+  window.setInterval(loadWeather, 10 * 60 * 1000);
+}
+
 if (document.body.dataset.category) {
   document.querySelectorAll('.main-nav a[href="locais.html"]').forEach((link) => {
     link.textContent = 'Primavera do Leste';
@@ -81,8 +177,18 @@ if (document.body.dataset.category) {
   }
 }
 
+document.querySelectorAll('.site-footer > .container > div:first-child').forEach((footerBrandBlock) => {
+  if (!footerBrandBlock.querySelector('.copyright')) {
+    const copyright = document.createElement('small');
+    copyright.className = 'copyright';
+    copyright.textContent = '© 2026 PVA NEWS. Todos os direitos reservados. Conteúdo protegido por direitos autorais.';
+    footerBrandBlock.appendChild(copyright);
+  }
+});
+
 renderCategoryNews();
 setupSearch();
+setupLiveData();
 
 const newsletterForm = document.querySelector('.newsletter-form');
 
