@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="PVA NEWS - cobertura inteligente das principais notícias do Brasil e do mundo."
+    />
+    <title>PVA NEWS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="container topbar-inner">
+        <span>Brasil • <span id="today-date"></span></span>
+        <span class="status-dot"></span>
+        <span>Política, saúde e informação em tempo real</span>
+      </div>
+    </div>
+
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <div class="brand-block">
+          <span class="brand-kicker">Cobertura de impacto</span>
+          <a href="#" class="brand" aria-label="PVA NEWS home">PVA <span>NEWS</span></a>
+        </div>
+
+        <nav class="main-nav" aria-label="Navegação principal">
+          <a href="index.html">Início</a>
+          <a href="politica.html">Política</a>
+          <a href="saude.html">Saúde</a>
+          <a href="locais.html">Brasil</a>
+          <a href="locais.html">Mundo</a>
+          <a href="index.html#destaques">Economia</a>
+          <a href="index.html#destaques">Tecnologia</a>
+        </nav>
+
+        <div class="nav-actions">
+          <button class="icon-button" id="search-toggle" aria-label="Buscar">⌕</button>
+          <button class="subscribe-btn">Assine</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="ticker-wrap">
+        <div class="container ticker">
+          <span class="ticker-label">Em destaque</span>
+          <div class="ticker-track">
+            <span>Debates políticos ganham novo impulso em agenda nacional.</span>
+            <span>Saúde pública avança com novos protocolos e investimentos locais.</span>
+            <span>Economia e infraestrutura seguem no centro das prioridades do país.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="hero container">
+        <article class="featured-story">
+          <div class="story-image story-large"></div>
+          <div class="story-content">
+            <span class="tag tag-primary">Política</span>
+            <h1>Agenda nacional se reorganiza com foco em infraestrutura, segurança e crescimento</h1>
+            <p>
+              Novos blocos de ação do governo priorizam investimentos em mobilidade, digitalização
+              e reforço do diálogo com estados e municípios para acelerar execução de projetos estratégicos.
+            </p>
+            <div class="story-meta">
+              <span>Por Redação PVA NEWS</span>
+              <span>5 min de leitura</span>
+            </div>
+          </div>
+        </article>
+
+        <aside class="side-news">
+          <article class="mini-story">
+            <span class="tag tag-health">Saúde</span>
+            <h3>Especialistas apontam avanços na atenção primária e desafios para ampliar acesso.</h3>
+            <div class="story-meta">
+              <span>14:20</span>
+              <span>3 min</span>
+            </div>
+          </article>
+
+          <article class="mini-story">
+            <span class="tag tag-politics">Política</span>
+            <h3>Comissão aprova medidas para acelerar obras e reduzir gargalos logísticos no país.</h3>
+            <div class="story-meta">
+              <span>13:10</span>
+              <span>4 min</span>
+            </div>
+          </article>
+
+          <article class="mini-story">
+            <span class="tag tag-economy">Economia</span>
+            <h3>Empresas intensificam investimentos em tecnologia e qualificação profissional.</h3>
+            <div class="story-meta">
+              <span>12:40</span>
+              <span>2 min</span>
+            </div>
+          </article>
+        </aside>
+      </section>
+
+      <section class="container section-block" id="destaques">
+        <div class="section-heading">
+          <h2>Destaques</h2>
+          <a href="#destaques">Ver todas</a>
+        </div>
+
+        <div class="news-grid">
+          <article class="news-card large-card">
+            <div class="card-image image-one"></div>
+            <div class="card-body">
+              <span class="tag tag-politics">Política</span>
+              <h3>Movimentos legislativos ganham força com foco em reformas e eficiência pública.</h3>
+              <p>Discussões sobre gestão pública e transparência seguem em primeiro plano nas principais capitais.</p>
+            </div>
+          </article>
+
+          <article class="news-card">
+            <div class="card-image image-two"></div>
+            <div class="card-body">
+              <span class="tag tag-health">Saúde</span>
+              <h3>Rede pública amplia programas de prevenção e acolhimento em regiões vulneráveis.</h3>
+              <p>Estratégias locais buscam reduzir filas, ampliar cobertura e fortalecer a atenção básica.</p>
+            </div>
+          </article>
+
+          <article class="news-card">
+            <div class="card-image image-three"></div>
+            <div class="card-body">
+              <span class="tag tag-economy">Economia</span>
+              <h3>Setor produtivo sinaliza retomada com investimentos em logística e inovação.</h3>
+              <p>Expectativas positivas no mercado também refletem ganhos de produtividade e compras públicas.</p>
+            </div>
+          </article>
+
+          <article class="news-card">
+            <div class="card-image image-four"></div>
+            <div class="card-body">
+              <span class="tag tag-technology">Tecnologia</span>
+              <h3>Uso de inteligência artificial cresce em setores de saúde, educação e gestão.</h3>
+              <p>Ferramentas digitais ganham espaço em análise de dados e atendimento de rotina.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="container split-layout">
+        <div class="editor-picks">
+          <div class="section-heading">
+            <h2>Escolha da redação</h2>
+          </div>
+
+          <div class="list-story">
+            <div class="list-thumb thumb-one"></div>
+            <div class="list-copy">
+              <span class="tag tag-politics">Política</span>
+              <h3>Debates sobre autonomia municipal e distribuição de recursos avançam em plenárias regionais.</h3>
+              <p>Governadores e prefeitos discutem alinhamento de prioridades e previsibilidade orçamentária.</p>
+            </div>
+          </div>
+
+          <div class="list-story">
+            <div class="list-thumb thumb-two"></div>
+            <div class="list-copy">
+              <span class="tag tag-health">Saúde</span>
+              <h3>Expansão de campanhas de prevenção reforça a importância da atenção contínua.</h3>
+              <p>Especialistas reforçam que a prevenção ainda é a melhor estratégia para reduzir casos graves.</p>
+            </div>
+          </div>
+
+          <div class="list-story">
+            <div class="list-thumb thumb-three"></div>
+            <div class="list-copy">
+              <span class="tag tag-economy">Economia</span>
+              <h3>Mercado local acompanha reformas estruturais e o impacto no setor de serviços.</h3>
+              <p>Analistas observam movimentação em empresas de logística, varejo e atendimento digital.</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="sidebar-panel">
+          <div class="section-heading">
+            <h2>Mais lidas</h2>
+          </div>
+
+          <ol class="popular-list">
+            <li>
+              <span class="rank">01</span>
+              <div>
+                <h4>Parcerias entre estados e municípios ampliam programas de saúde preventiva.</h4>
+                <small>Saúde</small>
+              </div>
+            </li>
+            <li>
+              <span class="rank">02</span>
+              <div>
+                <h4>Reformas políticas ganham espaço em discussão após novo ciclo de negociações.</h4>
+                <small>Política</small>
+              </div>
+            </li>
+            <li>
+              <span class="rank">03</span>
+              <div>
+                <h4>Empresas aceleram investimentos em infraestrutura e cadeia logística nacional.</h4>
+                <small>Economia</small>
+              </div>
+            </li>
+            <li>
+              <span class="rank">04</span>
+              <div>
+                <h4>Novas tecnologias ajudam hospitais a melhorar triagem e atendimento.</h4>
+                <small>Tecnologia</small>
+              </div>
+            </li>
+          </ol>
+        </aside>
+      </section>
+
+      <section class="container local-news-block">
+        <div class="section-heading">
+          <h2>Notícias locais</h2>
+          <a href="locais.html">Mais da região</a>
+        </div>
+
+        <div class="local-news-grid">
+          <article class="local-card local-featured">
+            <div class="local-image local-one"></div>
+            <div class="local-body">
+              <span class="tag tag-politics">Política local</span>
+              <h3>Prefeitura anuncia novos investimentos em mobilidade e urbanização de bairros.</h3>
+              <p>Projeto deve melhorar acesso, reduzir congestionamentos e ampliar áreas de convivência pública.</p>
+            </div>
+          </article>
+
+          <article class="local-card">
+            <div class="local-image local-two"></div>
+            <div class="local-body">
+              <span class="tag tag-health">Saúde local</span>
+              <h3>Unidades básicas ampliam atendimento com novos profissionais e serviços.</h3>
+            </div>
+          </article>
+
+          <article class="local-card">
+            <div class="local-image local-three"></div>
+            <div class="local-body">
+              <span class="tag tag-economy">Economia</span>
+              <h3>Comércio da região registra alta na movimentação e oportunidades de expansão.</h3>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="container categories-block">
+        <div class="section-heading">
+          <h2>Por categoria</h2>
+        </div>
+
+        <div class="category-grid">
+          <a class="category-card" href="politica.html">
+            <span class="category-icon">🏛️</span>
+            <h3>Política</h3>
+            <p>Debates, decisões e o cenário nacional em foco.</p>
+          </a>
+          <a class="category-card" href="saude.html">
+            <span class="category-icon">💊</span>
+            <h3>Saúde</h3>
+            <p>Prevenção, serviços públicos e inovação em saúde.</p>
+          </a>
+          <a class="category-card" href="#destaques">
+            <span class="category-icon">💼</span>
+            <h3>Economia</h3>
+            <p>Mercado, emprego, investimentos e desenvolvimento.</p>
+          </a>
+          <a class="category-card" href="#destaques">
+            <span class="category-icon">📡</span>
+            <h3>Tecnologia</h3>
+            <p>IA, digitalização e transformação do país.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="container numbers-block">
+        <div class="section-heading">
+          <h2>PVA NEWS em números</h2>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-number">1</span>
+            <h3>milhão de leitores</h3>
+            <p>alcance mensal em plataformas digitais e redes de alcance regional.</p>
+          </article>
+          <article class="stat-card">
+            <span class="stat-number">2</span>
+            <h3>coberturas diárias</h3>
+            <p>atualização contínua de notícias em política, saúde e economia.</p>
+          </article>
+          <article class="stat-card">
+            <span class="stat-number">3</span>
+            <h3>regiões atendidas</h3>
+            <p>presença ativa em diferentes mercados e comunidades do Brasil.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="container ads-panel">
+        <div class="ads-copy">
+          <span class="tag tag-primary">Anúncios</span>
+          <h2>Espaço para marcas, empresas e campanhas com alcance real.</h2>
+          <p>
+            A PVA NEWS conecta marcas a uma audiência engajada com notícias, informação de qualidade
+            e presença relevante no mercado.
+          </p>
+        </div>
+
+        <div class="ad-cards">
+          <article class="ad-card">
+            <span class="ad-badge">Publicidade</span>
+            <h3>Campanhas institucionais</h3>
+            <p>Ideal para empresas e organizações que querem posicionamento estratégico e credibilidade.</p>
+          </article>
+          <article class="ad-card">
+            <span class="ad-badge">Patrocínio</span>
+            <h3>Eventos e ações de marca</h3>
+            <p>Parcerias para divulgar produtos, programas, campanhas e transformações de negócio.</p>
+          </article>
+          <article class="ad-card">
+            <span class="ad-badge">Conteúdo</span>
+            <h3>Marketing editorial</h3>
+            <p>Campanhas com narrativa forte, presença digital e comunicação alinhada ao público.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="newsletter container" id="newsletter">
+        <div>
+          <span class="tag tag-primary">Newsletter</span>
+          <h2>Receba os principais destaques de política, saúde e economia no seu e-mail.</h2>
+        </div>
+        <form class="newsletter-form">
+          <input type="email" placeholder="Seu melhor e-mail" aria-label="Seu e-mail" />
+          <button type="submit">Inscrever-se</button>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <a href="#" class="brand footer-brand">PVA <span>NEWS</span></a>
+          <p>Informação clara, presença forte e cobertura que conecta o país.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#">Sobre</a>
+          <a href="#">Contato</a>
+          <a href="#">Política</a>
+          <a href="#">Saúde</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
