@@ -1001,6 +1001,41 @@ h1, h2, h3, h4, p {
 }
 
 @media (max-width: 720px) {
+  .site-header {
+    position: static;
+  }
+
+  .ticker {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    min-height: 0;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .ticker-label {
+    line-height: 1.2;
+  }
+
+  .ticker-track {
+    display: grid;
+    gap: 4px;
+    white-space: normal;
+    overflow: visible;
+    animation: none;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+
+  .ticker-track span {
+    display: block;
+  }
+
+  .ticker-track span:nth-child(n + 3) {
+    display: none;
+  }
+
   .main-nav {
     gap: 14px 18px;
     font-size: 0.88rem;
