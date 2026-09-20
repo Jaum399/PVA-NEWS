@@ -23,6 +23,15 @@ const stories = [
   { category: 'locais', label: 'Economia local', title: 'Comércio e agronegócio movimentam a economia da região', text: 'Empreendedores apostam em inovação e parcerias para gerar novas oportunidades.', image: 'local-three' }
 ];
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+}
+
+function safeImageUrl(value) {
+  const imageUrl = String(value || '');
+  return /^https:\/\//i.test(imageUrl) ? imageUrl.replace(/'/g, '%27') : '';
+}
+
 function tagClass(category) {
   return category === 'saude' ? 'tag-health' : category === 'locais' ? 'tag-economy' : 'tag-politics';
 }
@@ -159,6 +168,34 @@ async function loadWeather() {
   }
 }
 
+async function loadManagedNews() {
+  const section = document.getElementById('noticias-publicadas');
+  const target = document.getElementById('managed-news');
+  if (!section || !target) return;
+
+  try {
+    const response = await fetch('/api/content');
+    if (!response.ok) return;
+    const payload = await response.json();
+    if (!payload.articles?.length) return;
+
+    target.innerHTML = payload.articles.slice(0, 6).map((article) => `
+      <article class="news-card">
+        <div class="card-image managed-image" style="background-image: url('${safeImageUrl(article.imageUrl)}')"></div>
+        <div class="card-body">
+          <span class="tag ${tagClass(article.category)}">${escapeHtml(article.category)}</span>
+          <h3>${escapeHtml(article.title)}</h3>
+          <p>${escapeHtml(article.summary)}</p>
+          <small class="story-meta">${escapeHtml(article.author || 'Redação PVA NEWS')}</small>
+        </div>
+      </article>
+    `).join('');
+    section.hidden = false;
+  } catch (error) {
+    // A home estática continua disponível quando a API ainda não foi configurada.
+  }
+}
+
 function setupLiveData() {
   if (!document.getElementById('dados-em-tempo-real')) return;
   loadIbovespa();
@@ -189,6 +226,7 @@ document.querySelectorAll('.site-footer > .container > div:first-child').forEach
 renderCategoryNews();
 setupSearch();
 setupLiveData();
+loadManagedNews();
 
 const newsletterForm = document.querySelector('.newsletter-form');
 

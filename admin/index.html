@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PVA NEWS | Administração</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header"><a href="../index.html" class="brand">PVA <span>NEWS</span></a><span class="admin-badge">Painel editorial</span><a href="../index.html" class="view-link">Ver site ↗</a></header>
+    <section class="login-panel" id="login-panel"><span class="eyebrow">Acesso restrito</span><h1>Central de conteúdo</h1><p>Publique notícias, imagens e atualizações para Primavera do Leste.</p><form id="login-form"><label>Token administrativo<input id="token" type="password" autocomplete="current-password" required placeholder="Cole o ADMIN_TOKEN" /></label><button type="submit">Entrar no painel</button></form><p class="form-message" id="login-message"></p></section>
+    <section class="dashboard" id="dashboard" hidden>
+      <div class="dashboard-heading"><div><span class="eyebrow">Conteúdo publicado</span><h1>Notícias</h1></div><button class="secondary-button" id="logout-button">Sair</button></div>
+      <div class="dashboard-grid">
+        <form class="editor-form" id="article-form"><input type="hidden" id="article-id" /><div class="form-topline"><h2 id="form-title">Nova notícia</h2><button type="button" class="text-button" id="clear-form">Limpar</button></div><label>Título<input id="title" required maxlength="140" placeholder="Título da notícia" /></label><label>Resumo<textarea id="summary" required maxlength="320" rows="4" placeholder="Resumo que aparecerá no front-end"></textarea></label><div class="form-row"><label>Categoria<select id="category"><option value="locais">Primavera do Leste</option><option value="politica">Política</option><option value="saude">Saúde</option><option value="economia">Economia</option><option value="tecnologia">Tecnologia</option></select></label><label>Autor<input id="author" value="Redação PVA NEWS" maxlength="80" /></label></div><label>URL da imagem<input id="image-url" type="url" placeholder="https://..." /></label><label class="checkbox-label"><input id="published" type="checkbox" checked /> Publicar no site</label><button type="submit">Salvar notícia</button><p class="form-message" id="editor-message"></p></form>
+        <section class="article-list"><div class="list-heading"><h2>Últimas entradas</h2><button class="secondary-button" id="refresh-button">Atualizar</button></div><div id="articles"></div></section>
+      </div>
+    </section>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>
