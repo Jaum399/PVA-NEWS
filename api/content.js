@@ -1,4 +1,4 @@
-const { MongoClient } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 let cachedClient;
 let cachedDb;
@@ -8,11 +8,19 @@ async function getDb() {
   if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI nao configurada');
 
   cachedClient = cachedClient || new MongoClient(process.env.MONGODB_URI, {
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    family: 4,
     maxPoolSize: 5,
     minPoolSize: 0,
     maxIdleTimeMS: 20000,
     serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000
+    connectTimeoutMS: 5000,
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true
+    }
   });
   await cachedClient.connect();
   cachedDb = cachedClient.db(process.env.MONGODB_DB || 'pva_news');
@@ -95,6 +103,7 @@ module.exports = async function handler(request, response) {
     return json(response, 405, { error: 'Metodo nao permitido' });
   } catch (error) {
     console.error(error);
-    return json(response, 500, { error: 'Falha ao acessar o conteudo' });
+    const connectionError = error.name === 'MongoServerSelectionError' || error.name === 'MongoNetworkError';
+    return json(response, connectionError ? 503 : 500, { error: connectionError ? 'Banco de dados indisponivel' : 'Falha ao acessar o conteudo' });
   }
 };

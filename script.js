@@ -169,9 +169,11 @@ async function loadWeather() {
 }
 
 async function loadManagedNews() {
-  const section = document.getElementById('noticias-publicadas');
-  const target = document.getElementById('managed-news');
-  if (!section || !target) return;
+  const homeSection = document.getElementById('noticias-publicadas');
+  const homeTarget = document.getElementById('managed-news');
+  const categoryTarget = document.getElementById('category-news');
+  const category = document.body.dataset.category;
+  if ((!homeSection || !homeTarget) && !categoryTarget) return;
 
   try {
     const response = await fetch('/api/content');
@@ -179,7 +181,12 @@ async function loadManagedNews() {
     const payload = await response.json();
     if (!payload.articles?.length) return;
 
-    target.innerHTML = payload.articles.slice(0, 6).map((article) => `
+    const articles = category
+      ? payload.articles.filter((article) => article.category === category)
+      : payload.articles;
+    if (!articles.length) return;
+
+    const cards = articles.slice(0, 6).map((article) => `
       <article class="news-card">
         <div class="card-image managed-image" style="background-image: url('${safeImageUrl(article.imageUrl)}')"></div>
         <div class="card-body">
@@ -190,7 +197,12 @@ async function loadManagedNews() {
         </div>
       </article>
     `).join('');
-    section.hidden = false;
+
+    if (homeTarget && homeSection) {
+      homeTarget.innerHTML = cards;
+      homeSection.hidden = false;
+    }
+    if (categoryTarget) categoryTarget.insertAdjacentHTML('afterbegin', cards);
   } catch (error) {
     // A home estática continua disponível quando a API ainda não foi configurada.
   }
