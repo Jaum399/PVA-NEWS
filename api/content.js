@@ -25,14 +25,16 @@ function json(response, status, body) {
 
 function isAuthorized(request) {
   const expected = process.env.ADMIN_TOKEN;
+  const adminUser = process.env.ADMIN_USER || 'francimar';
+  const adminPassword = process.env.ADMIN_PASSWORD || process.env.FRANCIMAR;
   const authorization = request.headers.authorization || '';
   if (expected && authorization === `Bearer ${expected}`) return true;
 
   const [scheme, encoded] = authorization.split(' ');
-  if (scheme !== 'Basic' || !encoded || !process.env.ADMIN_USER || !process.env.ADMIN_PASSWORD) return false;
+  if (scheme !== 'Basic' || !encoded || !adminPassword) return false;
   const decoded = Buffer.from(encoded, 'base64').toString('utf8');
   const separator = decoded.indexOf(':');
-  return separator > 0 && decoded.slice(0, separator) === process.env.ADMIN_USER && decoded.slice(separator + 1) === process.env.ADMIN_PASSWORD;
+  return separator > 0 && decoded.slice(0, separator) === adminUser && decoded.slice(separator + 1) === adminPassword;
 }
 
 function normalizeArticle(input) {
