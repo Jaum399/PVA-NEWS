@@ -1,4 +1,5 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const crypto = require('crypto');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 let cachedClient;
 let cachedDb;
@@ -6,21 +7,10 @@ let cachedDb;
 async function getDb() {
   if (cachedDb) return cachedDb;
   if (!process.env.MONGODB_URI) throw new Error('MONGODB_URI nao configurada');
-
   cachedClient = cachedClient || new MongoClient(process.env.MONGODB_URI, {
-    tls: true,
-    tlsAllowInvalidCertificates: false,
-    family: 4,
-    maxPoolSize: 5,
-    minPoolSize: 0,
-    maxIdleTimeMS: 20000,
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000,
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true
-    }
+    tls: true, tlsAllowInvalidCertificates: false, family: 4, maxPoolSize: 5,
+    minPoolSize: 0, maxIdleTimeMS: 20000, serverSelectionTimeoutMS: 5000,
+    connectTimeoutMS: 5000, serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true }
   });
   await cachedClient.connect();
   cachedDb = cachedClient.db(process.env.MONGODB_DB || 'pva_news');
@@ -32,17 +22,15 @@ function json(response, status, body) {
 }
 
 function isAuthorized(request) {
-  const expected = process.env.ADMIN_TOKEN;
-  const adminUser = process.env.ADMIN_USER || 'francimar';
-  const adminPassword = process.env.ADMIN_PASSWORD || process.env.FRANCIMAR;
-  const authorization = request.headers.authorization || '';
-  if (expected && authorization === `Bearer ${expected}`) return true;
-
-  const [scheme, encoded] = authorization.split(' ');
-  if (scheme !== 'Basic' || !encoded || !adminPassword) return false;
-  const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-  const separator = decoded.indexOf(':');
-  return separator > 0 && decoded.slice(0, separator) === adminUser && decoded.slice(separator + 1) === adminPassword;
+  const item = String(request.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith('pva_admin_session='));
+  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || process.env.FRANCIMAR;
+  if (!item || !secret) return false;
+  const value = decodeURIComponent(item.split('=').slice(1).join('='));
+  const [payload, signature] = value.split('.');
+  const expected = payload ? crypto.createHmac('sha256', secret).update(payload).digest('base64url') : '';
+  if (!signature || signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return false;
+  const [subject, expires] = payload.split(':');
+  return subject === 'admin' && Number(expires) > Math.floor(Date.now() / 1000);
 }
 
 function normalizeArticle(input) {
@@ -51,43 +39,27 @@ function normalizeArticle(input) {
   const category = String(input.category || 'locais').trim();
   if (!title || !summary) throw new Error('Titulo e resumo sao obrigatorios');
   if (!['politica', 'saude', 'locais', 'economia', 'tecnologia'].includes(category)) throw new Error('Categoria invalida');
-  return {
-    title,
-    summary,
-    category,
-    imageUrl: String(input.imageUrl || '').trim(),
-    author: String(input.author || 'Redacao PVA NEWS').trim(),
-    published: Boolean(input.published),
-    updatedAt: new Date()
-  };
+  return { title, summary, category, imageUrl: String(input.imageUrl || '').trim(), author: String(input.author || 'Redacao PVA NEWS').trim(), published: Boolean(input.published), updatedAt: new Date() };
 }
 
 module.exports = async function handler(request, response) {
   try {
     const adminRequest = request.query?.admin === '1';
     const writeRequest = ['POST', 'PUT', 'DELETE'].includes(request.method);
-    if ((adminRequest || writeRequest) && !isAuthorized(request)) {
-      return json(response, 401, { error: 'Usuario ou senha invalidos' });
-    }
-
+    if ((adminRequest || writeRequest) && !isAuthorized(request)) return json(response, 401, { error: 'Sessao administrativa invalida' });
     const db = await getDb();
     const articles = db.collection('articles');
     await articles.createIndex({ published: 1, updatedAt: -1 });
-
     if (request.method === 'GET') {
-      const filter = adminRequest ? {} : { published: true };
-      const items = await articles.find(filter).sort({ updatedAt: -1 }).limit(100).toArray();
+      const items = await articles.find(adminRequest ? {} : { published: true }).sort({ updatedAt: -1 }).limit(100).toArray();
       return json(response, 200, { articles: items });
     }
-
     if (request.method === 'POST') {
       const article = normalizeArticle(request.body || {});
       const result = await articles.insertOne({ ...article, createdAt: new Date() });
       return json(response, 201, { article: { _id: result.insertedId, ...article } });
     }
-
     if (request.method === 'PUT') {
-      const { ObjectId } = require('mongodb');
       const id = request.body?._id;
       if (!id || !ObjectId.isValid(id)) return json(response, 400, { error: 'ID invalido' });
       const article = normalizeArticle(request.body);
@@ -95,19 +67,16 @@ module.exports = async function handler(request, response) {
       if (!result) return json(response, 404, { error: 'Noticia nao encontrada' });
       return json(response, 200, { article: result });
     }
-
     if (request.method === 'DELETE') {
-      const { ObjectId } = require('mongodb');
       const id = request.body?._id;
       if (!id || !ObjectId.isValid(id)) return json(response, 400, { error: 'ID invalido' });
       await articles.deleteOne({ _id: new ObjectId(id) });
       return json(response, 200, { ok: true });
     }
-
     return json(response, 405, { error: 'Metodo nao permitido' });
   } catch (error) {
     console.error(error);
-    const connectionError = error.name === 'MongoServerSelectionError' || error.name === 'MongoNetworkError';
+    const connectionError = ['MongoServerSelectionError', 'MongoNetworkError'].includes(error.name);
     return json(response, connectionError ? 503 : 500, { error: connectionError ? 'Banco de dados indisponivel' : 'Falha ao acessar o conteudo' });
   }
 };
