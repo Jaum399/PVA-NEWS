@@ -64,17 +64,21 @@ function normalizeArticle(input) {
 
 module.exports = async function handler(request, response) {
   try {
+    const adminRequest = request.query?.admin === '1';
+    const writeRequest = ['POST', 'PUT', 'DELETE'].includes(request.method);
+    if ((adminRequest || writeRequest) && !isAuthorized(request)) {
+      return json(response, 401, { error: 'Usuario ou senha invalidos' });
+    }
+
     const db = await getDb();
     const articles = db.collection('articles');
     await articles.createIndex({ published: 1, updatedAt: -1 });
 
     if (request.method === 'GET') {
-      const filter = request.query?.admin === '1' && isAuthorized(request) ? {} : { published: true };
+      const filter = adminRequest ? {} : { published: true };
       const items = await articles.find(filter).sort({ updatedAt: -1 }).limit(100).toArray();
       return json(response, 200, { articles: items });
     }
-
-    if (!isAuthorized(request)) return json(response, 401, { error: 'Nao autorizado' });
 
     if (request.method === 'POST') {
       const article = normalizeArticle(request.body || {});
