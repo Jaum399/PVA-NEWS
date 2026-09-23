@@ -43,6 +43,13 @@ module.exports = async function handler(request, response) {
     const articles = db.collection('articles');
     await articles.createIndex({ published: 1, updatedAt: -1 });
     if (request.method === 'GET') {
+      const requestedId = request.query?.id;
+      if (requestedId) {
+        if (!ObjectId.isValid(requestedId)) return json(response, 400, { error: 'ID invalido' });
+        const article = await articles.findOne({ _id: new ObjectId(requestedId), ...(adminRequest ? {} : { published: true }) });
+        if (!article) return json(response, 404, { error: 'Noticia nao encontrada' });
+        return json(response, 200, { article });
+      }
       const items = await articles.find(adminRequest ? {} : { published: true }).sort({ updatedAt: -1 }).limit(100).toArray();
       return json(response, 200, { articles: items });
     }

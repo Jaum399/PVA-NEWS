@@ -189,7 +189,7 @@ async function loadManagedNews() {
     if (!articles.length) return;
 
     const cards = articles.slice(0, 6).map((article) => `
-      <article class="news-card">
+      <a class="news-card news-card-link" href="article.html?id=${encodeURIComponent(article._id)}">
         <div class="card-image managed-image" style="background-image: url('${safeImageUrl(article.imageUrl)}')"></div>
         <div class="card-body">
           <span class="tag ${tagClass(article.category)}">${escapeHtml(article.category)}</span>
@@ -197,12 +197,35 @@ async function loadManagedNews() {
           <p>${escapeHtml(article.summary)}</p>
           <small class="story-meta">${escapeHtml(article.author || 'Redação PVA NEWS')}</small>
         </div>
-      </article>
+      </a>
     `).join('');
 
     if (homeTarget && homeSection) {
       homeTarget.innerHTML = cards;
       homeSection.hidden = false;
+    }
+
+    async function loadArticlePage() {
+      const target = document.getElementById('article-page');
+      const id = new URLSearchParams(window.location.search).get('id');
+      if (!target || !id) return;
+      try {
+        const response = await fetch(`/api/content?id=${encodeURIComponent(id)}`);
+        if (!response.ok) throw new Error('Noticia não encontrada');
+        const { article } = await response.json();
+        const image = safeImageUrl(article.imageUrl);
+        target.innerHTML = `
+          <article class="full-article">
+            <span class="tag ${tagClass(article.category)}">${escapeHtml(article.category)}</span>
+            <h1>${escapeHtml(article.title)}</h1>
+            <p class="full-article-lead">${escapeHtml(article.summary)}</p>
+            ${image ? `<div class="full-article-image" style="background-image:url('${image}')"></div>` : ''}
+            <div class="full-article-meta">${escapeHtml(article.author || 'Redação PVA NEWS')} · ${new Date(article.updatedAt || article.createdAt).toLocaleDateString('pt-BR')}</div>
+            <div class="full-article-copy"><p>${escapeHtml(article.summary)}</p><p>O PVA NEWS acompanha esta notícia e atualiza as informações conforme novos dados oficiais são divulgados.</p></div>
+          </article>`;
+      } catch (error) {
+        target.innerHTML = '<div class="article-error"><h1>Notícia indisponível</h1><p>Não foi possível carregar esta matéria agora.</p><a href="index.html">Voltar para a home</a></div>';
+      }
     }
     if (categoryTarget) categoryTarget.insertAdjacentHTML('afterbegin', cards);
   } catch (error) {
@@ -241,6 +264,7 @@ renderCategoryNews();
 setupSearch();
 setupLiveData();
 loadManagedNews();
+loadArticlePage();
 
 const newsletterForm = document.querySelector('.newsletter-form');
 
