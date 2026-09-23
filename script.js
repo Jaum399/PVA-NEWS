@@ -29,7 +29,9 @@ function escapeHtml(value) {
 
 function safeImageUrl(value) {
   const imageUrl = String(value || '');
-  return /^https:\/\//i.test(imageUrl) ? imageUrl.replace(/'/g, '%27') : '';
+  return /^(https:\/\/|data:image\/(?:jpeg|png|webp|gif);base64,)/i.test(imageUrl)
+    ? imageUrl.replace(/'/g, '%27')
+    : '';
 }
 
 function tagClass(category) {
