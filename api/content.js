@@ -1,5 +1,5 @@
-const crypto = require('crypto');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { isValid } = require('./session');
 
 let cachedClient;
 let cachedDb;
@@ -22,15 +22,7 @@ function json(response, status, body) {
 }
 
 function isAuthorized(request) {
-  const item = String(request.headers.cookie || '').split(';').map((part) => part.trim()).find((part) => part.startsWith('pva_admin_session='));
-  const secret = process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || process.env.FRANCIMAR;
-  if (!item || !secret) return false;
-  const value = decodeURIComponent(item.split('=').slice(1).join('='));
-  const [payload, signature] = value.split('.');
-  const expected = payload ? crypto.createHmac('sha256', secret).update(payload).digest('base64url') : '';
-  if (!signature || signature.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return false;
-  const [subject, expires] = payload.split(':');
-  return subject === 'admin' && Number(expires) > Math.floor(Date.now() / 1000);
+  return isValid(request);
 }
 
 function normalizeArticle(input) {
