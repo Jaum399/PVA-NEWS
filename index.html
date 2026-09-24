@@ -7,6 +7,12 @@
       name="description"
       content="PVA NEWS - o portal de notícias de Primavera do Leste e região."
     />
+    <meta name="theme-color" content="#b71c1c" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PVA NEWS" />
+    <meta property="og:title" content="PVA NEWS | Primavera do Leste" />
+    <meta property="og:description" content="Política, saúde, economia e notícias de Primavera do Leste e região." />
+    <meta property="og:url" content="https://pva-news.vercel.app/" />
     <title>PVA NEWS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +24,7 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#conteudo-principal">Ir para o conteúdo</a>
     <div class="topbar">
       <div class="container topbar-inner">
         <span>Primavera do Leste • <span id="today-date"></span></span>
@@ -50,7 +57,7 @@
       </div>
     </header>
 
-    <main>
+    <main id="conteudo-principal">
       <section class="ticker-wrap">
         <div class="container ticker">
           <span class="ticker-label"></span>
