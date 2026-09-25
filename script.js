@@ -27,11 +27,62 @@ function escapeHtml(value) {
   return String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
+function storyArticleUrl(story) {
+  const params = new URLSearchParams({
+    title: story.title,
+    summary: story.summary || '',
+    category: story.category || 'locais',
+    author: story.author || 'Redação PVA NEWS'
+  });
+  if (story.imageUrl) params.set('imageUrl', story.imageUrl);
+  return `article.html?${params.toString()}`;
+}
+
+function backgroundImageUrl(element) {
+  if (!element) return '';
+  const match = getComputedStyle(element).backgroundImage.match(/^url\(["']?(.*?)["']?\)$/);
+  if (!match) return '';
+  return safeImageUrl(match[1]);
+}
+
+function storyCategoryFromCard(card) {
+  const tag = card.querySelector('.tag');
+  if (tag?.classList.contains('tag-health')) return 'saude';
+  if (tag?.classList.contains('tag-economy')) return 'economia';
+  if (tag?.classList.contains('tag-technology')) return 'tecnologia';
+  if (tag?.classList.contains('tag-politics') || tag?.classList.contains('tag-primary')) return 'politica';
+  return document.body.dataset.category || 'locais';
+}
+
+function activateStaticStoryCards() {
+  const cardSelector = 'article.featured-story, article.mini-story, article.news-card, article.list-story, article.local-card';
+  document.querySelectorAll(cardSelector).forEach((card) => {
+    const title = card.querySelector('h1, h2, h3, h4')?.textContent?.trim();
+    if (!title) return;
+    const imageElement = card.querySelector('.story-image, .card-image, .list-thumb, .local-image, .dynamic-image');
+    const anchor = document.createElement('a');
+    anchor.className = `${card.className} story-card-link`;
+    anchor.href = storyArticleUrl({
+      title,
+      summary: card.querySelector('p')?.textContent?.trim() || '',
+      category: storyCategoryFromCard(card),
+      imageUrl: backgroundImageUrl(imageElement)
+    });
+    anchor.setAttribute('aria-label', `Abrir matéria: ${title}`);
+    while (card.firstChild) anchor.append(card.firstChild);
+    card.replaceWith(anchor);
+  });
+}
+
 function safeImageUrl(value) {
   const imageUrl = String(value || '');
-  return /^(https:\/\/|data:image\/(?:jpeg|png|webp|gif);base64,)/i.test(imageUrl)
-    ? imageUrl.replace(/'/g, '%27')
-    : '';
+  if (/^data:image\/(?:jpeg|png|webp|gif);base64,/i.test(imageUrl)) return imageUrl;
+  try {
+    const url = new URL(imageUrl);
+    return url.protocol === 'https:' && !url.username && !url.password ? url.href : '';
+  } catch (error) {
+    return '';
+  }
 }
 
 function tagClass(category) {
@@ -46,7 +97,7 @@ function renderCategoryNews() {
   target.innerHTML = stories
     .filter((story) => story.category === category)
     .map((story) => `
-      <article class="dynamic-news-card">
+      <a class="dynamic-news-card story-card-link" href="#" aria-label="Abrir matéria: ${escapeHtml(story.title)}">
         <div class="dynamic-image ${story.image}"></div>
         <div class="dynamic-body">
           <span class="tag ${tagClass(category)}">${story.label}</span>
@@ -54,8 +105,18 @@ function renderCategoryNews() {
           <p>${story.text}</p>
           <span class="story-meta">Hoje • 4 min de leitura</span>
         </div>
-      </article>
+      </a>
     `).join('');
+  target.querySelectorAll('.dynamic-news-card').forEach((card) => {
+    const title = card.querySelector('h3')?.textContent || '';
+    const summary = card.querySelector('p')?.textContent || '';
+    card.href = storyArticleUrl({
+      title,
+      summary,
+      category,
+      imageUrl: backgroundImageUrl(card.querySelector('.dynamic-image'))
+    });
+  });
 }
 
 function setupSearch() {
@@ -73,7 +134,7 @@ function setupSearch() {
   const updateResults = () => {
     const query = input.value.trim().toLowerCase();
     const matches = stories.filter((story) => `${story.title} ${story.label} ${story.text}`.toLowerCase().includes(query)).slice(0, 5);
-    results.innerHTML = matches.length ? matches.map((story) => `<a href="${story.category === 'politica' ? 'politica.html' : story.category === 'saude' ? 'saude.html' : 'locais.html'}"><strong>${story.title}</strong><small>${story.label}</small></a>`).join('') : '<p>Nenhuma notícia encontrada.</p>';
+    results.innerHTML = matches.length ? matches.map((story) => `<a href="${storyArticleUrl({ title: story.title, summary: story.text, category: story.category })}"><strong>${escapeHtml(story.title)}</strong><small>${escapeHtml(story.label)}</small></a>`).join('') : '<p>Nenhuma notícia encontrada.</p>';
   };
 
   trigger.addEventListener('click', () => { search.classList.add('is-open'); input.focus(); updateResults(); });
@@ -196,6 +257,7 @@ async function loadManagedNews() {
           <h3>${escapeHtml(article.title)}</h3>
           <p>${escapeHtml(article.summary)}</p>
           <small class="story-meta">${escapeHtml(article.author || 'Redação PVA NEWS')}</small>
+          ${article.editorialReviewed && article.verificationSources?.length ? '<small class="verification-badge">Fontes registradas</small>' : ''}
         </div>
       </a>
     `).join('');
@@ -205,49 +267,87 @@ async function loadManagedNews() {
       homeSection.hidden = false;
     }
 
-    async function loadManagedAds() {
-      const target = document.getElementById('managed-ads');
-      if (!target) return;
-      try {
-        const response = await fetch('/api/content?resource=ads');
-        if (!response.ok) return;
-        const { ads } = await response.json();
-        if (!ads?.length) return;
-        target.innerHTML = ads.slice(0, 3).map((ad) => {
-          const content = `<span class="ad-badge">Patrocínio</span><h3>${escapeHtml(ad.company)}${ad.title ? ` · ${escapeHtml(ad.title)}` : ''}</h3><p>${escapeHtml(ad.description)}</p>`;
-          return ad.link ? `<a class="ad-card managed-ad-card" href="${escapeHtml(ad.link)}" target="_blank" rel="noopener noreferrer">${content}</a>` : `<article class="ad-card managed-ad-card">${content}</article>`;
-        }).join('');
-        target.hidden = false;
-      } catch (error) {
-        // Mantém os espaços comerciais estáticos quando os anúncios gerenciados estiverem indisponíveis.
-      }
-    }
-
-    async function loadArticlePage() {
-      const target = document.getElementById('article-page');
-      const id = new URLSearchParams(window.location.search).get('id');
-      if (!target || !id) return;
-      try {
-        const response = await fetch(`/api/content?id=${encodeURIComponent(id)}`);
-        if (!response.ok) throw new Error('Noticia não encontrada');
-        const { article } = await response.json();
-        const image = safeImageUrl(article.imageUrl);
-        target.innerHTML = `
-          <article class="full-article">
-            <span class="tag ${tagClass(article.category)}">${escapeHtml(article.category)}</span>
-            <h1>${escapeHtml(article.title)}</h1>
-            <p class="full-article-lead">${escapeHtml(article.summary)}</p>
-            ${image ? `<div class="full-article-image" style="background-image:url('${image}')"></div>` : ''}
-            <div class="full-article-meta">${escapeHtml(article.author || 'Redação PVA NEWS')} · ${new Date(article.updatedAt || article.createdAt).toLocaleDateString('pt-BR')}</div>
-            <div class="full-article-copy"><p>${escapeHtml(article.summary)}</p><p>O PVA NEWS acompanha esta notícia e atualiza as informações conforme novos dados oficiais são divulgados.</p></div>
-          </article>`;
-      } catch (error) {
-        target.innerHTML = '<div class="article-error"><h1>Notícia indisponível</h1><p>Não foi possível carregar esta matéria agora.</p><a href="index.html">Voltar para a home</a></div>';
-      }
-    }
     if (categoryTarget) categoryTarget.insertAdjacentHTML('afterbegin', cards);
   } catch (error) {
     // A home estática continua disponível quando a API ainda não foi configurada.
+  }
+}
+
+async function loadManagedAds() {
+  const target = document.getElementById('managed-ads');
+  if (!target) return;
+  try {
+    const response = await fetch('/api/content?resource=ads');
+    if (!response.ok) return;
+    const { ads } = await response.json();
+    if (!ads?.length) return;
+    target.innerHTML = ads.slice(0, 3).map((ad) => {
+      let safeLink = '';
+      try {
+        const url = new URL(ad.link);
+        if (url.protocol === 'https:') safeLink = url.href;
+      } catch (error) {
+        safeLink = '';
+      }
+      const content = `<span class="ad-badge">Patrocínio</span><h3>${escapeHtml(ad.company)}${ad.title ? ` · ${escapeHtml(ad.title)}` : ''}</h3><p>${escapeHtml(ad.description)}</p>`;
+      return safeLink
+        ? `<a class="ad-card managed-ad-card" href="${escapeHtml(safeLink)}" target="_blank" rel="noopener noreferrer">${content}</a>`
+        : `<article class="ad-card managed-ad-card">${content}</article>`;
+    }).join('');
+    target.hidden = false;
+  } catch (error) {
+    // Mantém os espaços comerciais estáticos se a API não estiver disponível.
+  }
+}
+
+async function loadArticlePage() {
+  const target = document.getElementById('article-page');
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!target) return;
+  try {
+    let article;
+    if (id) {
+      const response = await fetch(`/api/content?id=${encodeURIComponent(id)}`);
+      if (!response.ok) throw new Error('Notícia não encontrada');
+      ({ article } = await response.json());
+    } else {
+      const title = params.get('title');
+        if (!title) throw new Error('Matéria não encontrada');
+        const category = params.get('category');
+        article = {
+          title,
+          summary: params.get('summary') || '',
+          category: ['politica', 'saude', 'locais', 'economia', 'tecnologia'].includes(category) ? category : 'locais',
+          author: params.get('author') || 'Redação PVA NEWS',
+          imageUrl: params.get('imageUrl') || ''
+        };
+      }
+      const image = safeImageUrl(article.imageUrl);
+    const sources = (article.verificationSources || []).filter((source) => {
+      try {
+        return new URL(source).protocol === 'https:';
+      } catch (error) {
+        return false;
+      }
+    });
+    const sourceDisclosure = sources.length
+      ? `<section class="verification-transparency"><span class="tag tag-primary">Transparência editorial</span><h2>Fontes e revisão</h2><p>${article.editorialReviewed ? `A redação registrou uma revisão editorial${article.editorialReviewedAt ? ` em ${new Date(article.editorialReviewedAt).toLocaleDateString('pt-BR')}` : ''}. Isso não substitui a avaliação crítica das fontes.` : 'As referências abaixo foram registradas para esta matéria.'}</p><ul>${sources.map((source) => `<li><a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(new URL(source).hostname)}</a></li>`).join('')}</ul></section>`
+      : '<section class="verification-transparency"><span class="tag tag-primary">Transparência editorial</span><h2>Fontes e revisão</h2><p>As fontes não foram registradas no painel para esta matéria. A ausência desta informação não determina, por si só, a veracidade do conteúdo.</p></section>';
+    const fullText = String(article.content || '').trim();
+    target.innerHTML = `
+      <article class="full-article">
+        <span class="tag ${tagClass(article.category)}">${escapeHtml(article.category)}</span>
+        <h1>${escapeHtml(article.title)}</h1>
+        <p class="full-article-lead">${escapeHtml(article.summary)}</p>
+        ${image ? `<div class="full-article-image" style="background-image:url('${image}')"></div>` : ''}
+        <div class="full-article-meta">${escapeHtml(article.author || 'Redação PVA NEWS')}${article.updatedAt || article.createdAt ? ` · ${new Date(article.updatedAt || article.createdAt).toLocaleDateString('pt-BR')}` : ''}</div>
+        ${fullText ? `<div class="full-article-copy"><p>${escapeHtml(fullText)}</p></div>` : '<p class="article-summary-notice">O texto integral desta matéria ainda não foi cadastrado. Esta página exibe o título e o resumo disponíveis.</p>'}
+        ${sourceDisclosure}
+      </article>`;
+    document.title = `${article.title} | PVA NEWS`;
+  } catch (error) {
+    target.innerHTML = '<div class="article-error"><h1>Notícia indisponível</h1><p>Não foi possível carregar esta matéria agora.</p><a href="index.html">Voltar para a home</a></div>';
   }
 }
 
@@ -279,6 +379,7 @@ document.querySelectorAll('.site-footer > .container > div:first-child').forEach
 });
 
 renderCategoryNews();
+activateStaticStoryCards();
 setupSearch();
 setupLiveData();
 loadManagedNews();

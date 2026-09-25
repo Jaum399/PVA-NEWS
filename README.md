@@ -18,4 +18,8 @@ O usuário do banco precisa ter acesso de leitura e escrita ao banco escolhido, 
 
 ## Conteúdo
 
-O painel cria, edita, publica e exclui documentos na coleção `articles`. Apenas documentos com `published: true` são exibidos no front-end público. Imagens são armazenadas como URLs externas; não envie senhas, tokens ou arquivos `.env` ao GitHub.
+O painel cria, edita, publica e exclui documentos na coleção `articles`. Apenas documentos com `published: true` são exibidos no front-end público. Imagens podem ser importadas no painel ou informadas por URL HTTPS; não envie senhas, tokens ou arquivos `.env` ao GitHub.
+
+## Integridade editorial
+
+Para publicar uma notícia pelo painel, a redação precisa registrar ao menos uma referência HTTPS e confirmar a revisão editorial. O painel também aponta sinais heurísticos como ausência de referências, linguagem potencialmente sensacionalista, títulos em caixa alta e pontuação enfática. Esses indicadores servem para priorizar revisão humana; não verificam fontes automaticamente e não classificam uma notícia como verdadeira ou falsa. As referências cadastradas e o registro de revisão ficam visíveis na matéria publicada para dar contexto ao leitor.

@@ -404,6 +404,9 @@ h1, h2, h3, h4, p {
 }
 .news-card-link { display: block; color: inherit; text-decoration: none; }
 .news-card-link:hover { transform: translateY(-5px); box-shadow: 0 24px 45px rgba(18, 18, 18, 0.12); }
+.story-card-link { display: block; color: inherit; text-decoration: none; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; }
+.story-card-link:hover { transform: translateY(-4px); box-shadow: 0 24px 48px rgba(18, 18, 18, .13); }
+.story-card-link:focus-visible { outline: 3px solid rgba(183, 28, 28, .45); outline-offset: 4px; }
 .featured-story, .news-card, .category-card, .local-card, .stat-card, .ad-card, .live-data-card, .sidebar-panel, .editor-picks, .newsletter { box-shadow: 0 14px 34px rgba(18, 18, 18, 0.09); }
 .article-page { padding: 72px 0 100px; }
 .full-article { max-width: 860px; margin: 0 auto; padding: clamp(24px, 5vw, 64px); border-radius: var(--radius-lg); background: var(--surface); box-shadow: 0 22px 60px rgba(18, 18, 18, 0.12); }
@@ -412,6 +415,13 @@ h1, h2, h3, h4, p {
 .full-article-image { min-height: 420px; margin: 32px 0; border-radius: var(--radius-md); background: center / cover no-repeat; }
 .full-article-meta { padding: 18px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
 .full-article-copy { max-width: 65ch; font-size: 1.08rem; line-height: 1.9; }
+.article-summary-notice { max-width: 65ch; margin-top: 24px; padding: 14px 16px; border-left: 3px solid var(--primary); background: var(--surface-alt); color: var(--muted); font-size: .9rem; line-height: 1.6; }
+.verification-badge { display: inline-block; margin-top: 10px; color: #176648; font-size: .72rem; font-weight: 800; }
+.verification-transparency { max-width: 65ch; margin-top: 38px; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-alt); }
+.verification-transparency h2 { margin: 14px 0 8px; font-size: 1.25rem; letter-spacing: -.04em; }
+.verification-transparency p { color: var(--muted); line-height: 1.65; }
+.verification-transparency ul { display: grid; gap: 8px; padding-left: 20px; }
+.verification-transparency a { color: var(--primary-deep); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .article-error, .article-loading { padding: 80px 0; text-align: center; color: var(--muted); }
 .article-error a { color: var(--primary); font-weight: 800; }
 

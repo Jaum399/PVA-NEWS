@@ -1,5 +1,6 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const { isValid } = require('./session');
+const { ValidationError, assessEditorialRisk, normalizeArticle, normalizeImageUrl, normalizeHttpsUrl } = require('./editorial-review');
 
 let cachedClient;
 let cachedDb;
@@ -25,23 +26,13 @@ function isAuthorized(request) {
   return isValid(request);
 }
 
-function normalizeArticle(input) {
-  const title = String(input.title || '').trim();
-  const summary = String(input.summary || '').trim();
-  const category = String(input.category || 'locais').trim();
-  if (!title || !summary) throw new Error('Titulo e resumo sao obrigatorios');
-  if (!['politica', 'saude', 'locais', 'economia', 'tecnologia'].includes(category)) throw new Error('Categoria invalida');
-  return { title, summary, category, imageUrl: String(input.imageUrl || '').trim(), author: String(input.author || 'Redacao PVA NEWS').trim(), published: Boolean(input.published), updatedAt: new Date() };
-}
-
 function normalizeAd(input) {
   const company = String(input.company || '').trim();
   const title = String(input.title || '').trim();
   const description = String(input.description || '').trim();
-  const link = String(input.link || '').trim();
-  if (!company || !title || !description) throw new Error('Empresa, titulo e descricao sao obrigatorios');
-  if (link && !/^https:\/\//i.test(link)) throw new Error('O link deve usar HTTPS');
-  return { company, title, description, link, imageUrl: String(input.imageUrl || '').trim(), active: Boolean(input.active), updatedAt: new Date() };
+  if (!company || !title || !description) throw new ValidationError('Empresa, titulo e descricao sao obrigatorios');
+  const link = normalizeHttpsUrl(input.link, 'O link deve usar uma URL HTTPS valida');
+  return { company, title, description, link, imageUrl: normalizeImageUrl(input.imageUrl), active: Boolean(input.active), updatedAt: new Date() };
 }
 
 module.exports = async function handler(request, response) {
@@ -52,8 +43,7 @@ module.exports = async function handler(request, response) {
     if ((adminRequest || writeRequest) && !isAuthorized(request)) return json(response, 401, { error: 'Sessao administrativa invalida' });
     const db = await getDb();
     const collection = db.collection(resource);
-    await collection.createIndex({ active: 1, updatedAt: -1 });
-    await collection.createIndex({ published: 1, updatedAt: -1 });
+    await collection.createIndex(resource === 'ads' ? { active: 1, updatedAt: -1 } : { published: 1, updatedAt: -1 });
     if (request.method === 'GET') {
       const requestedId = request.query?.id;
       if (requestedId) {
@@ -63,7 +53,16 @@ module.exports = async function handler(request, response) {
         return json(response, 200, { article });
       }
       const filter = adminRequest ? {} : resource === 'ads' ? { active: true } : { published: true };
-      const items = await collection.find(filter).sort({ updatedAt: -1 }).limit(100).toArray();
+      let items = await collection.find(filter).sort({ updatedAt: -1 }).limit(100).toArray();
+      if (adminRequest && resource === 'articles') {
+        items = items.map((article) => ({
+          ...article,
+          editorialAssessment: assessEditorialRisk({
+            ...article,
+            verificationSources: Array.isArray(article.verificationSources) ? article.verificationSources : []
+          })
+        }));
+      }
       return json(response, 200, resource === 'ads' ? { ads: items } : { articles: items });
     }
     if (request.method === 'POST') {
@@ -77,7 +76,13 @@ module.exports = async function handler(request, response) {
       const item = resource === 'ads' ? normalizeAd(request.body) : normalizeArticle(request.body);
       const result = await collection.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: item }, { returnDocument: 'after' });
       if (!result) return json(response, 404, { error: 'Noticia nao encontrada' });
-      return json(response, 200, { article: result });
+      if (resource === 'ads') return json(response, 200, { ad: result });
+      return json(response, 200, {
+        article: {
+          ...result,
+          editorialAssessment: assessEditorialRisk(item)
+        }
+      });
     }
     if (request.method === 'DELETE') {
       const id = request.body?._id;
@@ -88,6 +93,7 @@ module.exports = async function handler(request, response) {
     return json(response, 405, { error: 'Metodo nao permitido' });
   } catch (error) {
     console.error(error);
+    if (error instanceof ValidationError) return json(response, 400, { error: error.message });
     const connectionError = ['MongoServerSelectionError', 'MongoNetworkError'].includes(error.name);
     return json(response, connectionError ? 503 : 500, { error: connectionError ? 'Banco de dados indisponivel' : 'Falha ao acessar o conteudo' });
   }
