@@ -205,6 +205,24 @@ async function loadManagedNews() {
       homeSection.hidden = false;
     }
 
+    async function loadManagedAds() {
+      const target = document.getElementById('managed-ads');
+      if (!target) return;
+      try {
+        const response = await fetch('/api/content?resource=ads');
+        if (!response.ok) return;
+        const { ads } = await response.json();
+        if (!ads?.length) return;
+        target.innerHTML = ads.slice(0, 3).map((ad) => {
+          const content = `<span class="ad-badge">Patrocínio</span><h3>${escapeHtml(ad.company)}${ad.title ? ` · ${escapeHtml(ad.title)}` : ''}</h3><p>${escapeHtml(ad.description)}</p>`;
+          return ad.link ? `<a class="ad-card managed-ad-card" href="${escapeHtml(ad.link)}" target="_blank" rel="noopener noreferrer">${content}</a>` : `<article class="ad-card managed-ad-card">${content}</article>`;
+        }).join('');
+        target.hidden = false;
+      } catch (error) {
+        // Mantém os espaços comerciais estáticos quando os anúncios gerenciados estiverem indisponíveis.
+      }
+    }
+
     async function loadArticlePage() {
       const target = document.getElementById('article-page');
       const id = new URLSearchParams(window.location.search).get('id');
@@ -264,6 +282,7 @@ renderCategoryNews();
 setupSearch();
 setupLiveData();
 loadManagedNews();
+loadManagedAds();
 loadArticlePage();
 
 const newsletterForm = document.querySelector('.newsletter-form');

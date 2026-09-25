@@ -34,42 +34,55 @@ function normalizeArticle(input) {
   return { title, summary, category, imageUrl: String(input.imageUrl || '').trim(), author: String(input.author || 'Redacao PVA NEWS').trim(), published: Boolean(input.published), updatedAt: new Date() };
 }
 
+function normalizeAd(input) {
+  const company = String(input.company || '').trim();
+  const title = String(input.title || '').trim();
+  const description = String(input.description || '').trim();
+  const link = String(input.link || '').trim();
+  if (!company || !title || !description) throw new Error('Empresa, titulo e descricao sao obrigatorios');
+  if (link && !/^https:\/\//i.test(link)) throw new Error('O link deve usar HTTPS');
+  return { company, title, description, link, imageUrl: String(input.imageUrl || '').trim(), active: Boolean(input.active), updatedAt: new Date() };
+}
+
 module.exports = async function handler(request, response) {
   try {
+    const resource = request.query?.resource === 'ads' ? 'ads' : 'articles';
     const adminRequest = request.query?.admin === '1';
     const writeRequest = ['POST', 'PUT', 'DELETE'].includes(request.method);
     if ((adminRequest || writeRequest) && !isAuthorized(request)) return json(response, 401, { error: 'Sessao administrativa invalida' });
     const db = await getDb();
-    const articles = db.collection('articles');
-    await articles.createIndex({ published: 1, updatedAt: -1 });
+    const collection = db.collection(resource);
+    await collection.createIndex({ active: 1, updatedAt: -1 });
+    await collection.createIndex({ published: 1, updatedAt: -1 });
     if (request.method === 'GET') {
       const requestedId = request.query?.id;
       if (requestedId) {
         if (!ObjectId.isValid(requestedId)) return json(response, 400, { error: 'ID invalido' });
-        const article = await articles.findOne({ _id: new ObjectId(requestedId), ...(adminRequest ? {} : { published: true }) });
+        const article = await collection.findOne({ _id: new ObjectId(requestedId), ...(adminRequest ? {} : resource === 'ads' ? { active: true } : { published: true }) });
         if (!article) return json(response, 404, { error: 'Noticia nao encontrada' });
         return json(response, 200, { article });
       }
-      const items = await articles.find(adminRequest ? {} : { published: true }).sort({ updatedAt: -1 }).limit(100).toArray();
-      return json(response, 200, { articles: items });
+      const filter = adminRequest ? {} : resource === 'ads' ? { active: true } : { published: true };
+      const items = await collection.find(filter).sort({ updatedAt: -1 }).limit(100).toArray();
+      return json(response, 200, resource === 'ads' ? { ads: items } : { articles: items });
     }
     if (request.method === 'POST') {
-      const article = normalizeArticle(request.body || {});
-      const result = await articles.insertOne({ ...article, createdAt: new Date() });
-      return json(response, 201, { article: { _id: result.insertedId, ...article } });
+      const item = resource === 'ads' ? normalizeAd(request.body || {}) : normalizeArticle(request.body || {});
+      const result = await collection.insertOne({ ...item, createdAt: new Date() });
+      return json(response, 201, resource === 'ads' ? { ad: { _id: result.insertedId, ...item } } : { article: { _id: result.insertedId, ...item } });
     }
     if (request.method === 'PUT') {
       const id = request.body?._id;
       if (!id || !ObjectId.isValid(id)) return json(response, 400, { error: 'ID invalido' });
-      const article = normalizeArticle(request.body);
-      const result = await articles.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: article }, { returnDocument: 'after' });
+      const item = resource === 'ads' ? normalizeAd(request.body) : normalizeArticle(request.body);
+      const result = await collection.findOneAndUpdate({ _id: new ObjectId(id) }, { $set: item }, { returnDocument: 'after' });
       if (!result) return json(response, 404, { error: 'Noticia nao encontrada' });
       return json(response, 200, { article: result });
     }
     if (request.method === 'DELETE') {
       const id = request.body?._id;
       if (!id || !ObjectId.isValid(id)) return json(response, 400, { error: 'ID invalido' });
-      await articles.deleteOne({ _id: new ObjectId(id) });
+      await collection.deleteOne({ _id: new ObjectId(id) });
       return json(response, 200, { ok: true });
     }
     return json(response, 405, { error: 'Metodo nao permitido' });
